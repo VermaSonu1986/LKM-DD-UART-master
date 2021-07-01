@@ -1,0 +1,76 @@
+/*
+*  am335x-bonecustom.dts - A "Hello World" UART device tree.
+*
+* 
+*  Copyright (C) 2020, Alex Rhodes <https://www.alexrhodes.io>
+* 
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 3 of the License, or (at
+*  your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful, but
+*  WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*  General Public License for more details.
+*
+*  <https://www.gnu.org/licenses/gpl-3.0.html>
+* 
+*/
+
+/* This line includes the existing Beaglebone Black
+Device Tree Source file so portions can be overridden */
+#include "am335x-boneblack.dts"
+/* This label, am335xx_pinmux, refers to the existing pin muxing
+definition found in the am33xx.dtsi include file. */
+&am33xx_pinmux {
+	uart2_pins: uart2_pins { //This section adds muxing for UART2
+		/*
+        pinctrl-single,pins means the pin does not support generic pin configuration
+        and that the muxing register is 1 byte wide.
+        
+        The AM33XX_IOPAD macro comes from omap.h. It provides the absolute physical
+        address of the given address, as opposed to an offset from the base of the register.
+
+        The first argument is the address obtained from the processor technical reference manual.
+        
+        The PIN_OUTPUT_PULLDOWN flag indicates that the pin should be pulled low,
+        and the MUX_MODE1 flag indicates pin muxing mode 1 should be used. (per the Beaglebone
+        system reference manual)
+        */
+        pinctrl-single,pins = < 
+			AM33XX_IOPAD(0x954, PIN_OUTPUT_PULLDOWN | MUX_MODE1)
+			AM33XX_IOPAD(0x950, PIN_INPUT_PULLUP | MUX_MODE1)
+			>;
+	};
+
+    //A similar defintion is added to for UART4
+	uart4_pins: uart4_pins {
+	pinctrl-single,pins = <
+		AM33XX_IOPAD(0x870, PIN_INPUT_PULLUP | MUX_MODE6)
+		AM33XX_IOPAD(0x874, PIN_OUTPUT_PULLDOWN | MUX_MODE6)
+		>;
+	};
+};
+
+/*
+The label here references the device defined in the am33xx.dtsi include file.
+The fields populated here will override those in the original defintion.
+*/
+&uart2 {
+	compatible = "serial"; //This is used when identifying a compatibel device driver
+	status = "okay"; ///Setting the status to "okay" enables the device
+    //This is the name that corresponds to the pin control mode on the line below it
+	pinctrl-names = "default";
+    //This last entry binds the UART2 device to the pin control node defined above
+	pinctrl-0 = <&uart2_pins>;
+};
+
+//A similar entry is created for the UART4 device.
+&uart4 {
+	compatible = "serial";
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart4_pins>;
+};
